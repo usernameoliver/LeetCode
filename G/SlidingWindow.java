@@ -9,40 +9,66 @@ public class SlidingWindow {
             System.out.println(x);
         }
     }
+    private PriorityQueue<Integer> minQ = new PriorityQueue<>();
+    private PriorityQueue<Integer> maxQ = new PriorityQueue<>(Collections.reverseOrder());
     public double[] medianSlidingWindow(int[] nums, int k) {
-        PriorityQueue<Integer> qMin = new PriorityQueue<>();
-        PriorityQueue<Integer> qMax = new PriorityQueue<>(Collections.reverseOrder());
-        int i = 0, j = 0;
-        int index = 0;
+        if (nums.length < k)    return new double[0];
+
         double[] result = new double[nums.length - k + 1];
-        while (j < k - 1) {
-            if (qMin.size() >= qMax.size()) {
-                qMax.offer(nums[j]);
+        for (int i = 0; i <= nums.length; i++) {
+            
+            if (i >= k) {
+                result[i - k] = getMedian(k);
+                remove(nums[i - k]);
             }
-            else qMin.offer(nums[j]);
-            j++;
-        }
-        while (j < nums.length) {
-            System.out.println(qMin.toString());
-            if (qMin.size() >= qMax.size()) {
-                qMax.offer(nums[j]);
+
+
+            if (i < nums.length) {
+                add(nums[i], k);
             }
-            else qMin.offer(nums[j]);
-            if (j != (k - 1) ) {
-                if (qMax.contains(nums[i])) qMax.remove(nums[i]);
-                else    qMin.remove(nums[i]);
-            }
-            if (k % 2 == 0) {
-                int min = qMin.peek();
-                int max = qMax.peek();
-                result[index++] = (min + max) / 2.0;
-            }
-            else {
-                result[index++] = qMax.peek() * 1.0;
-            }
-            i++;
-            j++;
+
+            
         }
         return result;
+    }
+    private void remove(int num) {
+        if (minQ.contains(num)) {
+            minQ.remove(num);
+        }
+        else {
+            maxQ.remove(num);
+        }
+        resizeHeaps();
+    }
+    //minQ: 3
+    //maxQ: 1, -1
+
+    //minQ: 3, 1
+    //maxQ: -1
+    //num = -1
+    private void add(int num, int k) {
+        double median = getMedian(k);
+        if (num < median) {
+            maxQ.offer(num);
+        }
+        else {
+            minQ.offer(num);
+        }
+        resizeHeaps();
+    }
+    private void resizeHeaps() {
+        if (maxQ.size() > minQ.size()) {
+            minQ.add(maxQ.poll());
+    	}
+        if (minQ.size() - maxQ.size() > 1) {
+            maxQ.add(minQ.poll());
+        }
+    }
+    private double getMedian(int k) {
+        if (maxQ.isEmpty() && minQ.isEmpty())   return 0.0;
+        double minTop = minQ.isEmpty() ? 0.0 : (minQ.peek() * 1.0);
+        double  maxTop = maxQ.isEmpty() ? 0.0 : (maxQ.peek() * 1.0);
+        if (k % 2 == 0) return (maxTop + minTop) / 2.0;
+        else    return minTop;
     }
 }
